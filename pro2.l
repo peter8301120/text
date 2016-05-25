@@ -14,9 +14,11 @@ string (\"([^\"](\"\")?)*\")
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "pro2.tab.h"
 #define MAX_LINE_LENG 256
 #define LIST strcat(buf,yytext)
-#define token(t) {LIST; printf("<%s>\n",t);}
+#define token(t) {printf("<%s>\n",t);}
+ /* #define token(t) {LIST; printf("<%s>\n",t);} */
 #define tokenInteger(t,i) {LIST; printf("<%s:%d>\n",t,i);}
 #define tokenFloat(t,f) {LIST; printf("<%s:%f>\n",t,f);}
 #define tokenString(t,s) {LIST; printf("<%s:%s>\n",t,s);}
@@ -27,98 +29,113 @@ int ifd = 0;
  /* linenum從1開始數 */
 int linenum = 1;
 char buf[MAX_LINE_LENG];
- /* stmbol table */
-struct symnode {
-   char *id;
-};
- /* 每個table除了自己的table之外 還會有指標指向前一個 */ 
-struct symtable {
-   struct symnode thistable[tablesize];  
-   struct symtable *pretable;
-};
- /* 建最初的table start */
- struct symtable start = {};
- /* create */
-struct symtable create(struct symtable *st);
- /* lookup */
-int lookup(char *s , struct symtable *st);
- /* insert */
-int insert(char *s , struct symtable *st);
- /* dump */
-void dump(struct symtable *st);
+
+
+
 %}
 
 %%
  /* comma */
-<INITIAL>"," {token("','");}
+<INITIAL>"," {LIST;token("','");return ',';}
  /* colon */
-<INITIAL>":" {token("':'");}
+<INITIAL>":" {LIST;token("':'");return ':';}
  /* semicolon */
-<INITIAL>";" {token("';'");}
+<INITIAL>";" {LIST;token("';'");return ';';}
  /* parentheses */
-<INITIAL>"(" {token("'('");}
-<INITIAL>")" {token("')'");}
+<INITIAL>"(" {LIST;token("'('");return '(';}
+<INITIAL>")" {LIST;token("')'");return ')';}
  /* square brackets */
-<INITIAL>"[" {token("'['");}
-<INITIAL>"]" {token("']'");}
+<INITIAL>"[" {LIST;token("'['");return '[';}
+<INITIAL>"]" {LIST;token("']'");return ']';}
  /* brackets */
-<INITIAL>"{" {token("'{'");}
-<INITIAL>"}" {token("'}'");}
+<INITIAL>"{" {LIST;token("'{'");return '{';}
+<INITIAL>"}" {LIST;token("'}'");return '}';}
  /* arithmetic */
-<INITIAL>"+" {token("'+'");}
-<INITIAL>"-" {token("'-'");}
-<INITIAL>"*" {token("'*'");}
-<INITIAL>"/" {token("'/'");}
+<INITIAL>"+" {LIST;token("'+'");return '+';}
+<INITIAL>"-" {LIST;token("'-'");return '-';}
+<INITIAL>"*" {LIST;token("'*'");return '*';}
+<INITIAL>"/" {LIST;token("'/'");return '/';}
  /* exponentiation */
-<INITIAL>"^" {token("'^'");}
+<INITIAL>"^" {LIST;token("'^'");return '^';}
  /* remainder */
-<INITIAL>"%" {token("'%'");}
+<INITIAL>"%" {LIST;token("'%'");return '%';}
  /* relational */
-<INITIAL>"<" {token("'<'");}
-<INITIAL>"<=" {token("'<='");}
-<INITIAL>">=" {token("'>='");}
-<INITIAL>">" {token("'>'");}
-<INITIAL>"==" {token("'=='");}
-<INITIAL>"~=" {token("'~='");}
+<INITIAL>"<" {LIST;token("'<'");return '<';}
+<INITIAL>"<=" {LIST;token("'<='");return LTE;}
+<INITIAL>">=" {LIST;token("'>='");return GTE;}
+<INITIAL>">" {LIST;token("'>'");return '>';}
+<INITIAL>"==" {LIST;token("'=='");return EQ;}
+<INITIAL>"~=" {LIST;token("'~='");return NEQ;}
  /* logical */
-<INITIAL>"and" {token("and");}
-<INITIAL>"or" {token("or");}
-<INITIAL>"not" {token("not");}
+<INITIAL>"and" {LIST;token("AND");return AND;}
+<INITIAL>"or" {LIST;token("OR");return OR;}
+<INITIAL>"not" {LIST;token("NOT");return NOT;}
  /* assignment */
-<INITIAL>"=" {token("'='");}
+<INITIAL>"=" {LIST;token("'='");return ASSIGN;}
  /* keywords */
-<INITIAL>"boolean" {token("BOOLEAN");}
-<INITIAL>"const" {token("CONST");}
-<INITIAL>"do" {token("DO");}
-<INITIAL>"else" {token("ELSE");}
-<INITIAL>"end" {token("END");}
-<INITIAL>"false" {token("FALSE");}
-<INITIAL>"for" {token("FOR");}
-<INITIAL>"function" {token("FUNCTION");}
-<INITIAL>"if" {token("IF");}
-<INITIAL>"import" {token("IMPORT");}
-<INITIAL>"in" {token("IN");}
-<INITIAL>"integer" {token("INTEGER");}
-<INITIAL>"local" {token("LOCAL");}
-<INITIAL>"nil" {token("NIL");}
-<INITIAL>"print" {token("PRINT");}
-<INITIAL>"println" {token("PRINTLN");}
-<INITIAL>"real" {token("REAL");}
-<INITIAL>"repeat" {token("REPEAT");}
-<INITIAL>"return" {token("RETURN");}
-<INITIAL>"string" {token("STRING");}
-<INITIAL>"then" {token("THEN");}
-<INITIAL>"true" {token("TRUE");}
-<INITIAL>"until" {token("UNTIL");}
-<INITIAL>"while" {token("WHILE");}
+<INITIAL>"boolean" {LIST;token("BOOLEAN");return BOOLEAN;}
+<INITIAL>"const" {LIST;token("CONST");return CONST;}
+<INITIAL>"do" {LIST;token("DO");return DO;}
+<INITIAL>"else" {LIST;token("ELSE");return ELSE;}
+<INITIAL>"end" {LIST;token("END");return END;}
+ /* boolean */
+<INITIAL>"false"    {
+					LIST;
+					token("BOOLEAN_VAL");
+					/* 把值傳給yacc */
+				    yylval.s_val = (char *)malloc(sizeof(char) * (strlen(yytext)+1));			
+				    strcpy(yylval.s_val,yytext);
+					return BOOLEAN_VAL;
+					}
+<INITIAL>"for" {LIST;token("FOR");return FOR;}
+<INITIAL>"function" {LIST;token("FUNCTION");return FUNCTION;}
+<INITIAL>"if" {LIST;token("IF");return IF;}
+<INITIAL>"import" {LIST;token("IMPORT");return IMPORT;}
+<INITIAL>"in" {LIST;token("IN");return IN;}
+<INITIAL>"integer" {LIST;token("INTEGER");return INTEGER;}
+<INITIAL>"local" {LIST;token("LOCAL");return LOCAL;}
+<INITIAL>"nil" {LIST;token("NIL");return NIL;}
+<INITIAL>"print" {LIST;token("PRINT");return PRINT;}
+<INITIAL>"println" {LIST;token("PRINTLN");return PRINTLN;}
+<INITIAL>"real" {LIST;token("REAL");return REAL;}
+<INITIAL>"repeat" {LIST;token("REPEAT");return REPEAT;}
+<INITIAL>"return" {LIST;token("RETURN");return RETURN;}
+<INITIAL>"string" {LIST;token("STRING");return STRING;}
+<INITIAL>"read" {LIST;token("READ");return READ;}
+<INITIAL>"then" {LIST;token("THEN");return THEN;}
+ /* boolean */
+<INITIAL>"true"	{
+				LIST;
+				token("BOOLEAN_VAL");
+				/* 把值傳給yacc */
+				yylval.s_val = (char *)malloc(sizeof(char) * (strlen(yytext)+1));			
+				strcpy(yylval.s_val,yytext);
+				return BOOLEAN_VAL;
+				}
+<INITIAL>"until" {LIST;token("UNTIL");return UNTIL;}
+<INITIAL>"while" {LIST;token("WHILE");return WHILE;}
+<INITIAL>"void" {LIST;token("VOID");return VOID;}
  /* id 遇到id 放進symbol table 中 */
-<INITIAL>{id}	{   
-					insert(yytext,&start);
-					tokenString("identifier",yytext);	
+<INITIAL>{id}	{  
+					yylval.s_val = (char *)malloc(sizeof(char) * (strlen(yytext)+1));			
+				    strcpy(yylval.s_val,yytext);
+					insertID(yytext,nowtable);					
+					tokenString("identifier",yytext);
+					return ID;
 				}
  /* number and real number */
-<INITIAL>{digits} {tokenInteger("integer",atoi(yytext));}
-<INITIAL>{real_number} {tokenFloat("float",atof(yytext));}
+<INITIAL>{digits}	{
+					tokenInteger("INTEGER_VAL",atoi(yytext));
+					/* 把值傳給yacc */
+					yylval.i_val = atoi(yytext) ;
+					return INTEGER_VAL;
+					}
+<INITIAL>{real_number}	{
+						tokenFloat("REAL_VAL",atof(yytext));
+						/* 把值傳給yacc */
+						yylval.d_val = atof(yytext);
+						return REAL_VAL;
+						}
  /* string  */
 <INITIAL>{string}	{
 						int i = 0;char s[80] = {};int j = 0;
@@ -146,7 +163,11 @@ void dump(struct symtable *st);
 								j++;
 							}
 						}
-						tokenString("string",s);
+						tokenString("STRING_VAL",s);
+						/* 把值傳給yacc */
+						yylval.s_val = (char *)malloc(sizeof(char) * (strlen(s)+1));			
+				        strcpy(yylval.s_val,s);
+						return STRING_VAL;
 					}
  /* newline and tab */
 <INITIAL>\n {LIST;printf("%d: %s",linenum,buf);linenum++;buf[0] = '\0';}
@@ -166,79 +187,7 @@ void dump(struct symtable *st);
 <COMMENT>"*/" {LIST;BEGIN INITIAL;}
 
 %%
-
-void main() {    
-	yylex(); /* start the  analysis*/   
-    /* dump Symbol Table */
-	printf("\nSymbol Table:\n");
-	dump(&start); 
-	return 0;  
-}   
-
+ 
 int yywrap() {  
 	return 1;
-}
-
-struct symtable create(struct symtable *st)
-{
-	/* 初始化 */
-    struct symtable stb = {} ;
-    stb.pretable = st;
-    return stb;
-}
- /*  找到symbol table中s的位置並回傳 */
-int lookup(char *s , struct symtable *st)
-{
-    int i = 0;
-	/* 不等於NULL */
-    while ( st->thistable[i].id )
-    {
-		/* 相等 */
-        if (!strcmp(st->thistable[i].id, s))
-        {
-            return i;                 
-        }
-        i++;
-    }
-    return -1;  
-}
- /* 將s放入symbol table中*/
-int insert(char *s , struct symtable *st)
-{
-	/* 先找s有沒有在裡面 */
-    int index = lookup(s , st);
-	/* 沒有的話 */
-    if( index == -1)
-    {
-        int i = 0;
-        while ( i <= tablesize-1)
-        {
-			/* 找到等於NULL地方 */
-            if (!st->thistable[i].id )
-            {
-				/* 把s放進去 */
-				st->thistable[i].id = (char *)malloc(sizeof(char) * (strlen(s)+1));			
-                strcpy(st->thistable[i].id, s);
-                return i;                 
-            }
-            i++;
-        }
-    }
-    else
-    {
-        return index;
-    }
-}
- /* 印出symbol table內的所有id */
-void dump(struct symtable *st)
-{
-    int i = 0;
-    for (i ; i <= tablesize - 1 ; i++)
-    {
-		/* 不等於NULL */
-        if(st->thistable[i].id)
-		{ 
-            printf( "%s\n" , st->thistable[i].id);
-		} 
-    }
 }
