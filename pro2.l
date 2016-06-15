@@ -7,14 +7,15 @@ optional_exp ([Ee^][+-]?{digits})?
 real_number ({digits}{optional_faction}{optional_exp})
  /* 字串 由"開頭和結尾 中間可以包含任何不是"的字，或是""的closure */
 string (\"([^\"](\"\")?)*\")
-
+errID ({digit}({letter})+)
+errSTR (\"([^\"])*(\")([^\"])*\")
 
 %s COMMENT
 %{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pro2.tab.h"
+#include "y.tab.h"
 #define MAX_LINE_LENG 256
 #define LIST strcat(buf,yytext)
 #define token(t) {printf("<%s>\n",t);}
@@ -36,102 +37,104 @@ char buf[MAX_LINE_LENG];
 
 %%
  /* comma */
-<INITIAL>"," {LIST;token("','");return ',';}
+<INITIAL>"," {LIST;return ',';}
  /* colon */
-<INITIAL>":" {LIST;token("':'");return ':';}
+<INITIAL>":" {LIST;return ':';}
  /* semicolon */
-<INITIAL>";" {LIST;token("';'");return ';';}
+<INITIAL>";" {LIST;return ';';}
  /* parentheses */
-<INITIAL>"(" {LIST;token("'('");return '(';}
-<INITIAL>")" {LIST;token("')'");return ')';}
+<INITIAL>"(" {LIST;return '(';}
+<INITIAL>")" {LIST;return ')';}
  /* square brackets */
-<INITIAL>"[" {LIST;token("'['");return '[';}
-<INITIAL>"]" {LIST;token("']'");return ']';}
+<INITIAL>"[" {LIST;return '[';}
+<INITIAL>"]" {LIST;return ']';}
  /* brackets */
-<INITIAL>"{" {LIST;token("'{'");return '{';}
-<INITIAL>"}" {LIST;token("'}'");return '}';}
+<INITIAL>"{" {LIST;return '{';}
+<INITIAL>"}" {LIST;return '}';}
  /* arithmetic */
-<INITIAL>"+" {LIST;token("'+'");return '+';}
-<INITIAL>"-" {LIST;token("'-'");return '-';}
-<INITIAL>"*" {LIST;token("'*'");return '*';}
-<INITIAL>"/" {LIST;token("'/'");return '/';}
+<INITIAL>"+" {LIST;return '+';}
+<INITIAL>"-" {LIST;return '-';}
+<INITIAL>"*" {LIST;return '*';}
+<INITIAL>"/" {LIST;return '/';}
  /* exponentiation */
-<INITIAL>"^" {LIST;token("'^'");return '^';}
+<INITIAL>"^" {LIST;return '^';}
  /* remainder */
-<INITIAL>"%" {LIST;token("'%'");return '%';}
+<INITIAL>"%" {LIST;return '%';}
  /* relational */
-<INITIAL>"<" {LIST;token("'<'");return '<';}
-<INITIAL>"<=" {LIST;token("'<='");return LTE;}
-<INITIAL>">=" {LIST;token("'>='");return GTE;}
-<INITIAL>">" {LIST;token("'>'");return '>';}
-<INITIAL>"==" {LIST;token("'=='");return EQ;}
-<INITIAL>"~=" {LIST;token("'~='");return NEQ;}
+<INITIAL>"<" {LIST;return '<';}
+<INITIAL>"<=" {LIST;return LTE;}
+<INITIAL>">=" {LIST;return GTE;}
+<INITIAL>">" {LIST;return '>';}
+<INITIAL>"==" {LIST;return EQ;}
+<INITIAL>"~=" {LIST;return NEQ;}
  /* logical */
-<INITIAL>"and" {LIST;token("AND");return AND;}
-<INITIAL>"or" {LIST;token("OR");return OR;}
-<INITIAL>"not" {LIST;token("NOT");return NOT;}
+<INITIAL>"and" {LIST;return AND;}
+<INITIAL>"or" {LIST;return OR;}
+<INITIAL>"not" {LIST;return NOT;}
  /* assignment */
-<INITIAL>"=" {LIST;token("'='");return ASSIGN;}
+<INITIAL>"=" {LIST;return ASSIGN;}
  /* keywords */
-<INITIAL>"boolean" {LIST;token("BOOLEAN");return BOOLEAN;}
-<INITIAL>"const" {LIST;token("CONST");return CONST;}
-<INITIAL>"do" {LIST;token("DO");return DO;}
-<INITIAL>"else" {LIST;token("ELSE");return ELSE;}
-<INITIAL>"end" {LIST;token("END");return END;}
+<INITIAL>"boolean" {LIST;return BOOLEAN;}
+<INITIAL>"const" {LIST;return CONST;}
+<INITIAL>"do" {LIST;return DO;}
+<INITIAL>"else" {LIST;return ELSE;}
+<INITIAL>"end" {LIST;return END;}
  /* boolean */
 <INITIAL>"false"    {
 					LIST;
-					token("BOOLEAN_VAL");
 					/* 把值傳給yacc */
 				    yylval.s_val = (char *)malloc(sizeof(char) * (strlen(yytext)+1));			
 				    strcpy(yylval.s_val,yytext);
 					return BOOLEAN_VAL;
 					}
-<INITIAL>"for" {LIST;token("FOR");return FOR;}
-<INITIAL>"function" {LIST;token("FUNCTION");return FUNCTION;}
-<INITIAL>"if" {LIST;token("IF");return IF;}
-<INITIAL>"import" {LIST;token("IMPORT");return IMPORT;}
-<INITIAL>"in" {LIST;token("IN");return IN;}
-<INITIAL>"integer" {LIST;token("INTEGER");return INTEGER;}
-<INITIAL>"local" {LIST;token("LOCAL");return LOCAL;}
-<INITIAL>"nil" {LIST;token("NIL");return NIL;}
-<INITIAL>"print" {LIST;token("PRINT");return PRINT;}
-<INITIAL>"println" {LIST;token("PRINTLN");return PRINTLN;}
-<INITIAL>"real" {LIST;token("REAL");return REAL;}
-<INITIAL>"repeat" {LIST;token("REPEAT");return REPEAT;}
-<INITIAL>"return" {LIST;token("RETURN");return RETURN;}
-<INITIAL>"string" {LIST;token("STRING");return STRING;}
-<INITIAL>"read" {LIST;token("READ");return READ;}
-<INITIAL>"then" {LIST;token("THEN");return THEN;}
+<INITIAL>"for" {LIST;return FOR;}
+<INITIAL>"function" {LIST;return FUNCTION;}
+<INITIAL>"if" {LIST;return IF;}
+<INITIAL>"import" {LIST;return IMPORT;}
+<INITIAL>"in" {LIST;return IN;}
+<INITIAL>"integer" {LIST;return INTEGER;}
+<INITIAL>"local" {LIST;return LOCAL;}
+<INITIAL>"nil" {LIST;return NIL;}
+<INITIAL>"print" {LIST;return PRINT;}
+<INITIAL>"println" {LIST;return PRINTLN;}
+<INITIAL>"real" {LIST;return REAL;}
+<INITIAL>"repeat" {LIST;return REPEAT;}
+<INITIAL>"return" {LIST;return RETURN;}
+<INITIAL>"string" {LIST;return STRING;}
+<INITIAL>"read" {LIST;return READ;}
+<INITIAL>"then" {LIST;return THEN;}
  /* boolean */
 <INITIAL>"true"	{
 				LIST;
-				token("BOOLEAN_VAL");
 				/* 把值傳給yacc */
 				yylval.s_val = (char *)malloc(sizeof(char) * (strlen(yytext)+1));			
 				strcpy(yylval.s_val,yytext);
 				return BOOLEAN_VAL;
 				}
-<INITIAL>"until" {LIST;token("UNTIL");return UNTIL;}
-<INITIAL>"while" {LIST;token("WHILE");return WHILE;}
-<INITIAL>"void" {LIST;token("VOID");return VOID;}
+<INITIAL>"until" {LIST;return UNTIL;}
+<INITIAL>"while" {LIST;return WHILE;}
+<INITIAL>"void" {LIST;return VOID;}
  /* id 遇到id 放進symbol table 中 */
 <INITIAL>{id}	{  
 					yylval.s_val = (char *)malloc(sizeof(char) * (strlen(yytext)+1));			
 				    strcpy(yylval.s_val,yytext);
 					insertID(yytext,nowtable);					
-					tokenString("identifier",yytext);
+					LIST;
 					return ID;
 				}
+ /* 不正確的ID */
+<INITIAL>{errID}	{  
+                    fprintf(stderr, "linenum: %d ,This is not a correct ID\n",linenum);
+					}
  /* number and real number */
 <INITIAL>{digits}	{
-					tokenInteger("INTEGER_VAL",atoi(yytext));
+					LIST;
 					/* 把值傳給yacc */
 					yylval.i_val = atoi(yytext) ;
 					return INTEGER_VAL;
 					}
 <INITIAL>{real_number}	{
-						tokenFloat("REAL_VAL",atof(yytext));
+						LIST;
 						/* 把值傳給yacc */
 						yylval.d_val = atof(yytext);
 						return REAL_VAL;
@@ -163,28 +166,32 @@ char buf[MAX_LINE_LENG];
 								j++;
 							}
 						}
-						tokenString("STRING_VAL",s);
+						LIST;
 						/* 把值傳給yacc */
 						yylval.s_val = (char *)malloc(sizeof(char) * (strlen(s)+1));			
 				        strcpy(yylval.s_val,s);
 						return STRING_VAL;
 					}
+ /* 不正確的STRING */
+<INITIAL>{errSTR}	{  
+                    fprintf(stderr, "linenum: %d ,This is not a correct string\n",linenum);
+					}
  /* newline and tab */
-<INITIAL>\n {LIST;printf("%d: %s",linenum,buf);linenum++;buf[0] = '\0';}
+<INITIAL>\n {printf("/* %d: %s */\n",linenum,buf);linenum++;buf[0] = '\0';}
 <INITIAL>[ \t]* {LIST;}
  /* 遇到//的註解，把內容印出來，linenum+1，buf清空 */
-<INITIAL>("/""/"[^\n]*\n) {LIST;printf("%d: %s",linenum,buf);buf[0] = '\0';linenum++;}
+<INITIAL>("/""/"[^\n]*\n) {buf[0] = '\0';linenum++;}
  /* 遇到/*進入註解模式，並印出所在linenum */
-<INITIAL>"/*" {BEGIN COMMENT;LIST;}
+<INITIAL>"/*" {BEGIN COMMENT;}
  /* 註解模式中，即使遇到//也只是存進buf裡 */
-<COMMENT>"/""/"   {LIST;}
+<COMMENT>"/""/"   {/* no action */}
  /* 註解模式中，遇到newline存進buf且印出linenum,內容 buf清空 */
-<COMMENT>\n   {LIST;printf("%d: %s",linenum,buf);linenum++;buf[0] = '\0';}
+<COMMENT>\n   {linenum++;buf[0] = '\0';}
  /* 註解模式中，遇到newline和(* /)以外的就存進buf裡 */
-<COMMENT>[^[*/\n]]* {LIST;}
-<COMMENT>[*]* {LIST;}
+<COMMENT>[^[*/\n]]* {/* no action*/}
+<COMMENT>[*]* {/* no action */}
  /* 註解模式中，遇到(* /)存進buf裡，並且回到初始模式 */
-<COMMENT>"*/" {LIST;BEGIN INITIAL;}
+<COMMENT>"*/\n" {linenum++;BEGIN INITIAL;}
 
 %%
  
